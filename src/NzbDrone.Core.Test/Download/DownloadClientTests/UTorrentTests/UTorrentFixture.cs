@@ -139,8 +139,8 @@ namespace NzbDrone.Core.Test.Download.DownloadClientTests.UTorrentTests
             }
 
             Mocker.GetMock<IUTorrentProxy>()
-                .Setup(s => s.GetTorrents(It.IsAny<UTorrentSettings>()))
-                .Returns(torrents);
+                .Setup(s => s.GetTorrents(It.IsAny<string>(), It.IsAny<UTorrentSettings>()))
+                .Returns(new UTorrentResponse { Torrents = torrents });
         }
 
         protected void PrepareClientToReturnQueuedItem()
