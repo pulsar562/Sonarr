@@ -88,6 +88,8 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                     int generalRuntime;
                     int streamCount;
                     int audioChannels;
+                    int? videoBitDepth = null;
+                    int videoBitDepthTemp;
                     decimal videoFrameRate;
 
                     string subtitles = mediaInfo.Get(StreamKind.General, 0, "Text_Language_List");
@@ -97,6 +99,12 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                     int.TryParse(mediaInfo.Get(StreamKind.Video, 0, "BitRate"), out videoBitRate);
                     decimal.TryParse(mediaInfo.Get(StreamKind.Video, 0, "FrameRate"), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out videoFrameRate);
 
+
+                    if (int.TryParse(mediaInfo.Get(StreamKind.Video, 0, "BitDepth"), out videoBitDepthTemp))
+                    {
+                        videoBitDepth = videoBitDepthTemp;
+                    }
+
                     //Runtime
                     int.TryParse(mediaInfo.Get(StreamKind.Video, 0, "PlayTime"), out videoRuntime);
                     int.TryParse(mediaInfo.Get(StreamKind.Audio, 0, "PlayTime"), out audioRuntime);
@@ -105,7 +113,9 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                     string aBitRate = mediaInfo.Get(StreamKind.Audio, 0, "BitRate");
                     int aBindex = aBitRate.IndexOf(" /", StringComparison.InvariantCultureIgnoreCase);
                     if (aBindex > 0)
+                    {
                         aBitRate = aBitRate.Remove(aBindex);
+                    }
 
                     int.TryParse(aBitRate, out audioBitRate);
                     int.TryParse(mediaInfo.Get(StreamKind.Audio, 0, "StreamCount"), out streamCount);
@@ -113,21 +123,30 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
 
                     string audioChannelsStr = mediaInfo.Get(StreamKind.Audio, 0, "Channel(s)");
                     int aCindex = audioChannelsStr.IndexOf(" /", StringComparison.InvariantCultureIgnoreCase);
+
                     if (aCindex > 0)
+                    {
                         audioChannelsStr = audioChannelsStr.Remove(aCindex);
+                    }
+
+                    var audioChannelPositions = mediaInfo.Get(StreamKind.Audio, 0, "ChannelPositions/String2");
 
                     string audioLanguages = mediaInfo.Get(StreamKind.General, 0, "Audio_Language_List");
                     string audioProfile = mediaInfo.Get(StreamKind.Audio, 0, "Format_Profile");
 
                     int aPindex = audioProfile.IndexOf(" /", StringComparison.InvariantCultureIgnoreCase);
+
                     if (aPindex > 0)
+                    {
                         audioProfile = audioProfile.Remove(aPindex);
+                    }
 
                     int.TryParse(audioChannelsStr, out audioChannels);
                     var mediaInfoModel = new MediaInfoModel
                                                 {
                                                     VideoCodec = mediaInfo.Get(StreamKind.Video, 0, "Codec/String"),
                                                     VideoBitrate = videoBitRate,
+                                                    VideoBitDepth = videoBitDepth,
                                                     Height = height,
                                                     Width = width,
                                                     AudioFormat = mediaInfo.Get(StreamKind.Audio, 0, "Format"),
@@ -135,6 +154,7 @@ namespace NzbDrone.Core.MediaFiles.MediaInfo
                                                     RunTime = GetBestRuntime(audioRuntime, videoRuntime, generalRuntime),
                                                     AudioStreamCount = streamCount,
                                                     AudioChannels = audioChannels,
+                                                    AudioChannelPositions = audioChannelPositions,
                                                     AudioProfile = audioProfile.Trim(),
                                                     VideoFps = videoFrameRate,
                                                     AudioLanguages = audioLanguages,
